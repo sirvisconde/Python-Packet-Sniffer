@@ -1,3 +1,1 @@
-## To Do
-
-- Interpret HTTP data (tcp.dest_port will be 80)
+Implementação de suporte ao IPv6 como trabalho para a disciplina de Redes de Computadores da Universidade de Caxias do Sul (UCS).

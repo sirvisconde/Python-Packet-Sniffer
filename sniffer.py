@@ -2,7 +2,9 @@ import socket
 from general import *
 from networking.ethernet import Ethernet
 from networking.ipv4 import IPv4
+from networking.ipv6 import IPv6
 from networking.icmp import ICMP
+from networking.icmpv6 import ICMPv6
 from networking.tcp import TCP
 from networking.udp import UDP
 from networking.pcap import Pcap
@@ -22,6 +24,8 @@ DATA_TAB_4 = '\t\t\t\t   '
 def main():
     pcap = Pcap('capture.pcap')
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+    
+    ipv6 = None
 
     while True:
         raw_data, addr = conn.recvfrom(65535)
@@ -82,10 +86,26 @@ def main():
             else:
                 print(TAB_1 + 'Other IPv4 Data:')
                 print(format_multi_line(DATA_TAB_2, ipv4.data))
+                
+            # IPv6
+        elif eth.proto == 56710:  # Exemplo de valor do protocolo IPv6
+            ipv6 = IPv6(eth.data)
+            print(TAB_1 + 'IPv6 Packet:')
+            print(TAB_2 + 'Version: {}, Traffic Class: {}, Flow Label: {}'.format(ipv6.version, ipv6.traffic_class, ipv6.flow_label))
+            print(TAB_2 + 'Payload Length: {}, Next Header: {}, Hop Limit: {}'.format(ipv6.payload_length, ipv6.next_header, ipv6.hop_limit))
+            print(TAB_2 + 'Source: {}, Target: {}'.format(ipv6.src, ipv6.target))
 
-        else:
-            print('Ethernet Data:')
-            print(format_multi_line(DATA_TAB_1, eth.data))
+        # ICMPv6
+        if ipv6 is not None and ipv6.next_header == 58:  # Exemplo de valor do próximo cabeçalho ICMPv6
+            icmpv6 = ICMPv6(ipv6.data)
+            print(TAB_1 + 'ICMPv6 Packet:')
+            print(TAB_2 + 'Type: {}, Code: {}, Checksum: {}'.format(icmpv6.type, icmpv6.code, icmpv6.checksum))
+            print(TAB_2 + 'ICMPv6 Data:')
+            print(format_multi_line(DATA_TAB_3, icmpv6.data))
+
+    else:
+        print('Ethernet Data:')
+        print(format_multi_line(DATA_TAB_1, eth.data))
 
     pcap.close()
 
